@@ -1,0 +1,39 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-schema-x6-order
+      author: max
+      changes:
+        - sql:
+            sql: |
+              CREATE SCHEMA IF NOT EXISTS x6_order;
+
+  - changeSet:
+      id: create-order-table
+      author: max
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS x6_order.orders (
+                id SERIAL PRIMARY KEY,
+                user_id BIGINT NOT NULL,
+                total_price DECIMAL(12,2) NOT NULL,
+                status VARCHAR(32) NOT NULL
+              );
+
+  - changeSet:
+      id: create-order-item-table
+      author: max
+      changes:
+        - sql:
+            sql: |
+              CREATE TABLE IF NOT EXISTS x6_order.order_item (
+                id SERIAL PRIMARY KEY,
+                order_id BIGINT NOT NULL,
+                product_id BIGINT NOT NULL,
+                quantity INT NOT NULL,
+                price DECIMAL(10,2) NOT NULL,
+                CONSTRAINT fk_order_item_order
+                  FOREIGN KEY (order_id)
+                  REFERENCES x6_order.orders(id)
+                  ON DELETE CASCADE
+              );

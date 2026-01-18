@@ -2,6 +2,7 @@ package com.sds.x6_order.service;
 
 import com.sds.x6_order.enums.OrderStatus;
 import com.sds.x6_order.exception.BadRequestException;
+import com.sds.x6_order.model.CreateOrderItem;
 import com.sds.x6_order.model.CreateOrderRequest;
 import com.sds.x6_order.model.Order;
 import com.sds.x6_order.model.OrderItem;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,12 @@ public class OrderService {
             throw new BadRequestException("Order must contain at least one item");
         }
         userService.checkUser(req.userId());
+
+        List<Long> productIds = req.items().stream()
+                                   .map(CreateOrderItem::productId)
+                                   .toList();
+
+        productService.checkProductsExist(productIds);
 
         Set<OrderItem> items = req.items().stream()
                                   .map(i -> {

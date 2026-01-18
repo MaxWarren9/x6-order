@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
+import java.util.List;
+
 @Component
 public class ProductClient {
 
@@ -20,5 +22,13 @@ public class ProductClient {
                             .uri("/api/v1/product/{id}", id)
                             .retrieve()
                             .body(Product.class);
+    }
+
+    public boolean areProductsAvailable(List<Long> ids) {
+        return productClient.post()
+                            .uri("/api/v1/product/exists")
+                            .body(ids)
+                            .retrieve()
+                            .body(Boolean.class);
     }
 }

@@ -6,7 +6,9 @@ import com.sds.x6_order.model.CreateOrderItem;
 import com.sds.x6_order.model.CreateOrderRequest;
 import com.sds.x6_order.model.Order;
 import com.sds.x6_order.model.OrderItem;
+import com.sds.x6_order.model.dto.OrderCreatedEvent;
 import com.sds.x6_order.model.Product;
+import com.sds.x6_order.rabbit.OrderEventProducer;
 import com.sds.x6_order.repository.OrderRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,21 +26,25 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final ExternalUserService userService;
     private final ExternalProductService productService;
+    private final OrderEventProducer producer;
 
     @Transactional
     public Order create(CreateOrderRequest req) {
-        if (req.items() == null || req.items().isEmpty()) {
+        if (req.items() == null || req.items()
+                                      .isEmpty()) {
             throw new BadRequestException("Order must contain at least one item");
         }
         userService.checkUser(req.userId());
 
-        List<Long> productIds = req.items().stream()
+        List<Long> productIds = req.items()
+                                   .stream()
                                    .map(CreateOrderItem::productId)
                                    .toList();
 
         productService.checkProductsExist(productIds);
 
-        Set<OrderItem> items = req.items().stream()
+        Set<OrderItem> items = req.items()
+                                  .stream()
                                   .map(i -> {
                                       Product p = productService.getProduct(i.productId());
                                       if (i.quantity() <= 0) {
@@ -49,11 +55,13 @@ public class OrderService {
                                   .collect(Collectors.toSet());
 
         BigDecimal total = items.stream()
-                                .map(i -> i.price().multiply(BigDecimal.valueOf(i.quantity())))
+                                .map(i -> i.price()
+                                           .multiply(BigDecimal.valueOf(i.quantity())))
                                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        return orderRepository.insert(
-                new Order(null, req.userId(), items, total, OrderStatus.CREATED)
-        );
+        Order savedOrder = orderRepository.insert(new Order(null, req.userId(), items, total, OrderStatus.CREATED));
+        OrderCreatedEvent event = OrderCreatedEvent.from(savedOrder);
+        producer.send(event);
+        return savedOrder;
     }
 }

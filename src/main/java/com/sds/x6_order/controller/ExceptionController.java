@@ -1,6 +1,7 @@
 package com.sds.x6_order.controller;
 
 import com.sds.x6_order.exception.BadRequestException;
+import com.sds.x6_order.exception.NotFoundException;
 import com.sds.x6_order.exception.OrderException;
 import com.sds.x6_order.model.ApiError;
 import org.springframework.http.HttpStatus;

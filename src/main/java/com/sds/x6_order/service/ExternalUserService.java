@@ -11,6 +11,6 @@ public class ExternalUserService {
     private final UserClient userClient;
 
     public void checkUser(Long id) {
-        userClient.checkUser(id);
+        userClient.checkUserExists(id);
     }
 }

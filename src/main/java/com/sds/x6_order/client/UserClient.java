@@ -1,6 +1,6 @@
 package com.sds.x6_order.client;
 
-import com.sds.x6_order.controller.NotFoundException;
+import com.sds.x6_order.exception.NotFoundException;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -16,7 +16,7 @@ public class UserClient {
         this.userClient = userClient;
     }
 
-    public void checkUser(Long id) {
+    public void checkUserExists(Long id) {
         try {
             userClient.get()
                       .uri("/api/v1/user/{id}", id)
